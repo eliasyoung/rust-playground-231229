@@ -1,1 +1,5 @@
-# Just Somewhere to play Rust Code. Nothing else.
+# Just somewhere to play rust code. 
+
+# Nothing else.
+
+# That's all of it.
