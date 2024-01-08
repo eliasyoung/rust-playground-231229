@@ -5,16 +5,16 @@ use std::error::Error;
 use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 use std::str::{self, Utf8Error};
 
-pub struct Request<'buf> {
-    path: &'buf str,
-    query_string: Option<&'buf str>,
+pub struct Request<'a>{
+    path: &'a str,
+    query_string: Option<&'a str>,
     method: RequestMethod,
 }
 
-impl<'buf> TryFrom<&[u8]> for Request<'buf> {
+impl<'a> TryFrom<&'a [u8]> for Request<'a> {
     type Error = ParseError;
 
-    fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
+    fn try_from(value: &'a [u8]) -> Result<Self, Self::Error> {
         // match str::from_utf8(value) {
         //     Ok(request) => {}
         //     Err(_) => return Err(ParseError::InvalidEncoding),
@@ -28,11 +28,6 @@ impl<'buf> TryFrom<&[u8]> for Request<'buf> {
         // let request = str::from_utf8(value).or(Err(ParseError::InvalidEncoding))?;
 
         let request = str::from_utf8(value)?;
-
-        match get_next_word(request) {
-            Some((method, request)) => {}
-            None => return Err(ParseError::InvalidRequest),
-        }
 
         let (method, request) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
         let (mut path, request) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
@@ -49,15 +44,14 @@ impl<'buf> TryFrom<&[u8]> for Request<'buf> {
         if let Some(i) = path.find('?') {
             query_string = Some(&path[i + 1..]);
             path = &path[..i];
-        };
+        }
 
         Ok(Self {
-            path: path,
+            path,
             query_string,
             method
         })
 
-        unimplemented!()
     }
 }
 
