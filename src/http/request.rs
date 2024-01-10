@@ -1,14 +1,30 @@
 pub use super::request_method::RequestMethod;
+use super::QueryString;
 use crate::http::request_method::{self, MethodError};
 use std::convert::{From, TryFrom};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 use std::str::{self, Utf8Error};
 
-pub struct Request<'a>{
+#[derive(Debug)]
+pub struct Request<'a> {
     path: &'a str,
-    query_string: Option<&'a str>,
+    query_string: Option<QueryString<'a>>,
     method: RequestMethod,
+}
+
+impl<'a> Request<'a> {
+    pub fn path(&self) -> &str {
+        &self.path
+    }
+
+    pub fn method(&self) -> &RequestMethod {
+        &self.method
+    }
+
+    pub fn query_string(&self) -> Option<&QueryString> {
+        self.query_string.as_ref()
+    }
 }
 
 impl<'a> TryFrom<&'a [u8]> for Request<'a> {
@@ -42,16 +58,15 @@ impl<'a> TryFrom<&'a [u8]> for Request<'a> {
         let mut query_string = None;
 
         if let Some(i) = path.find('?') {
-            query_string = Some(&path[i + 1..]);
+            query_string = Some(QueryString::from(&path[i + 1..]));
             path = &path[..i];
         }
 
         Ok(Self {
             path,
             query_string,
-            method
+            method,
         })
-
     }
 }
 
